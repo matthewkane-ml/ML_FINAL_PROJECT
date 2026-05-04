@@ -2,7 +2,7 @@ import os
 import requests
 from urllib.parse import quote_plus
 
-YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "")
+YOUTUBE_API_KEY = os.environ.get("AIzaSyB8S84otZZ2ro919xiXl8xbwNJksZPg7tY", "")
 YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
 
 
