@@ -489,7 +489,7 @@ def main():
         "📺 Streaming",
         "📱 Social Buzz",
         "▶️ Reviews & Trailers",
-        "🤖 Ask FlikPik",
+        "🧠 FlikPik AI",
         "👤 Insights",
     ])
 
