@@ -693,7 +693,7 @@ def show_movie_cards(df, score_col=None, max_items=24):
                 try:
                     st.markdown("<div class='movie-card'>", unsafe_allow_html=True)
                     if poster:
-                        st.image(poster, use_container_width=True)
+                        st.image(poster, width="stretch")
                     else:
                         safe = shorten(clean_movie_title(title) or title, 40)
                         st.markdown(
@@ -739,7 +739,7 @@ def main():
 
     with st.sidebar:
         if os.path.exists(LOGO_PATH):
-            st.image(LOGO_PATH, use_container_width=True)
+            st.image(LOGO_PATH, width="stretch")
         else:
             st.markdown("## 🎬 FlikPik AI")
             st.caption("Sit tight, we got you!")
