@@ -408,8 +408,29 @@ def extract_year(title):
 
 
 def placeholder_poster(title):
-    """Return None — callers render a CSS placeholder instead of fetching an image."""
-    return None
+    """Return a self-contained SVG data URI usable directly in an <img> src."""
+    import urllib.parse as _up
+    label = clean_movie_title(title) or title or "Movie"
+    if len(label) > 22:
+        label = label[:20] + "..."
+    label = (label.replace("&", "&amp;")
+                  .replace("<", "&lt;")
+                  .replace(">", "&gt;")
+                  .replace('"', "&quot;"))
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="342" height="513">'
+        '<rect width="342" height="513" fill="#1a1a2e"/>'
+        '<rect x="12" y="12" width="318" height="489" fill="#16213e" rx="10" '
+        'stroke="#2a2a4a" stroke-width="1.5"/>'
+        '<text x="171" y="220" font-family="Arial,sans-serif" font-size="64" '
+        'fill="#3a3a6a" text-anchor="middle" dominant-baseline="middle">&#9654;</text>'
+        f'<text x="171" y="300" font-family="Arial,sans-serif" font-size="16" '
+        f'font-weight="bold" fill="#c0c0d0" text-anchor="middle">{label}</text>'
+        '<text x="171" y="328" font-family="Arial,sans-serif" font-size="12" '
+        'fill="#6a6a8a" text-anchor="middle">No poster available</text>'
+        '</svg>'
+    )
+    return "data:image/svg+xml," + _up.quote(svg)
 
 
 @st.cache_data(show_spinner=False)
@@ -661,9 +682,10 @@ def show_movie_cards(df, score_col=None, max_items=24):
     for row in df.to_dict("records"):
         title = row.get("title", "Unknown")
         try:
-            row["poster_url"] = fetch_tmdb_poster(title)
+            tmdb = fetch_tmdb_poster(title)
         except Exception:
-            row["poster_url"] = None
+            tmdb = None
+        row["poster_url"] = tmdb or placeholder_poster(title)
         records.append(row)
         if len(records) >= max_items:
             break
@@ -681,7 +703,7 @@ def show_movie_cards(df, score_col=None, max_items=24):
             title       = row.get("title", "Unknown")
             genres      = row.get("genres", "")
             movie_id    = row.get("movieId", "")
-            poster      = row.get("poster_url")
+            poster      = row.get("poster_url") or placeholder_poster(title)
             stream      = get_streaming(title)
             total_buzz  = sum(get_social(title).values())
             trailer_url = get_youtube_search_url(title)
@@ -697,19 +719,15 @@ def show_movie_cards(df, score_col=None, max_items=24):
                 [f"<span class='pill'>{p}</span>" for p in stream[:3]]
             )
 
-            if poster:
-                media_html = (
-                    f"<img src='{poster}' loading='lazy' "
-                    f"style='width:100%;border-radius:14px;display:block;' "
-                    f"alt='{shorten(title, 40)}'>"
-                )
-            else:
-                safe = shorten(clean_movie_title(title) or title, 40)
-                media_html = f"<div class='no-poster'>&#127916;<br><b>{safe}</b></div>"
+            img_html = (
+                f"<img src='{poster}' loading='lazy' "
+                f"style='width:100%;border-radius:14px;display:block;' "
+                f"alt='{shorten(title, 40)}'>"
+            )
 
             card_html = f"""
             <div class='movie-card'>
-                {media_html}
+                {img_html}
                 <div class='movie-title'>{shorten(title, 58)}</div>
                 <div class='movie-meta'>{shorten(genres, 72)}</div>
                 <div>{platform_html}</div>
